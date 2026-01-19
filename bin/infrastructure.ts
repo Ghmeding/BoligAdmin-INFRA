@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { App } from "aws-cdk-lib";
 import { RdsStack } from "../lib/rds-stack";
 import { EcsStack } from "../lib/ecs-stack";
@@ -6,6 +5,9 @@ import { NetworkStack } from "../lib/network-stack";
 import { AlbStack } from "../lib/alb-stack";
 import { EcrStack } from "../lib/ecr-stack";
 import { ApiGatewayStack } from "../lib/api-gateway-stack";
+
+import { CognitoStack } from "../lib/cognito-stack";
+import { LambdaStack } from "../lib/lambda-stack";
 
 const app = new App();
 
@@ -21,9 +23,15 @@ const albStack = new AlbStack(app, "AlbStack", {
     vpc: networkStack.vpc
 });
 
+const lambdaStack = new LambdaStack(app, "LambdaStack");
+
+const cognitoStack = new CognitoStack(
+    app,
+    "BoligAdminCognitoStack",
+);
+    
 const apiGatewayStack = new ApiGatewayStack(app, "ApiGatewayStack", {
-    vpcLink: networkStack.vpcLink,
-    albListener: albStack.loadBalancerListener
+    myLambda: lambdaStack.myLambda,
 });
 
 rdsStack.addDependency(networkStack);
@@ -31,6 +39,7 @@ ecsStack.addDependency(networkStack);
 albStack.addDependency(networkStack);
 apiGatewayStack.addDependency(networkStack);
 apiGatewayStack.addDependency(albStack);
+
 
 
 
