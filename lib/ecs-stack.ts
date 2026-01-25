@@ -21,7 +21,6 @@ export class EcsStack extends Stack {
         this.cluster = new Cluster(this, 'EcsCluster', {
             vpc: vpc,
             clusterName: `${PREFIX}-cluster`
-
         });
     }
 }

@@ -1,3 +1,5 @@
 node_modules
 .DS_Store
 cdk.out
+lambdas/bootstrap
+lambdas/go.sum
