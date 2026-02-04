@@ -3,7 +3,7 @@ import { Cluster } from 'aws-cdk-lib/aws-ecs';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 
-export const PREFIX = "BA_AUTH";
+export const PREFIX = "BA_CORE";
 
 export interface EcsStackProps extends StackProps {
     vpc: Vpc;
@@ -21,7 +21,6 @@ export class EcsStack extends Stack {
         this.cluster = new Cluster(this, 'EcsCluster', {
             vpc: vpc,
             clusterName: `${PREFIX}-cluster`
-
         });
     }
 }

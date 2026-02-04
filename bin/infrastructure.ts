@@ -8,6 +8,7 @@ import { ApiGatewayStack } from "../lib/api-gateway-stack";
 
 import { CognitoStack } from "../lib/cognito-stack";
 import { LambdaStack } from "../lib/lambda-stack";
+import { BaCoreFargateServicestack } from "../lib/ba-core-fargateservice-stack";
 
 const app = new App();
 
@@ -16,22 +17,37 @@ const networkStack = new NetworkStack(app, "NetworkStack");
 const rdsStack = new RdsStack(app, "RdsStack", {
     vpc: networkStack.vpc
 });
+
 const ecsStack = new EcsStack(app, "EcsStack", {
     vpc: networkStack.vpc
 });
+
 const albStack = new AlbStack(app, "AlbStack", {
-    vpc: networkStack.vpc
+    vpc: networkStack.vpc,
+    vpcLinkSecurityGroup: networkStack.vpcLinkSecurityGroup
+});
+
+const baCoreFargateServiceStack = new BaCoreFargateServicestack(app, "BaCoreFargateServicestack", {
+      vpc: networkStack.vpc,
+      ecrRepository: ecrStack.baCoreEcrRepository,
+      cluster: ecsStack.cluster,
+      dbSecret: rdsStack.dbSecret,
+      loadBalancer: albStack.loadBalancer,
+      targetGroup: albStack.coreTargetGroup,
+      securityGroup: albStack.albSecurityGroup,
 });
 
 const lambdaStack = new LambdaStack(app, "LambdaStack");
 
-const cognitoStack = new CognitoStack(
-    app,
-    "BoligAdminCognitoStack",
-);
+// const cognitoStack = new CognitoStack(
+//     app,
+//     "BoligAdminCognitoStack",
+// );
     
 const apiGatewayStack = new ApiGatewayStack(app, "ApiGatewayStack", {
     myLambda: lambdaStack.myLambda,
+    loadBalancer: albStack.loadBalancer,
+    vpcLink: networkStack.vpcLink
 });
 
 rdsStack.addDependency(networkStack);

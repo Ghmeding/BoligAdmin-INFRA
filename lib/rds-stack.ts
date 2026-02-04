@@ -1,6 +1,7 @@
 import { CfnOutput, Stack, RemovalPolicy, StackProps, SecretValue, Duration } from 'aws-cdk-lib';
 import { Vpc, SecurityGroup, Port, Peer, SubnetType, InstanceType, InstanceClass, InstanceSize } from 'aws-cdk-lib/aws-ec2';
 import { DatabaseInstance, DatabaseInstanceEngine, Credentials, PostgresEngineVersion } from 'aws-cdk-lib/aws-rds';
+import { ISecret } from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 
 export interface RdsStackProps extends StackProps {
@@ -8,6 +9,9 @@ export interface RdsStackProps extends StackProps {
 }
 
 export class RdsStack extends Stack {
+
+    public readonly dbSecret: ISecret;
+    
     constructor(scope: Construct, id: string, props: RdsStackProps) {
         super(scope, id, props);
 
@@ -16,6 +20,7 @@ export class RdsStack extends Stack {
         const instanceType = InstanceType.of(InstanceClass.T3, InstanceSize.MICRO);
         const port = 5432;
         const dbName = "BA_CORE_DB";
+        const credentials = Credentials.fromGeneratedSecret('ba_admin');
 
         const dbSg = new SecurityGroup(this, 'RdsSecurityGroup', {
             securityGroupName: "BA_CORE_DB_SG",
@@ -38,11 +43,13 @@ export class RdsStack extends Stack {
             port,
             securityGroups: [dbSg],
             databaseName: dbName,
-            credentials: Credentials.fromGeneratedSecret('ba_admin'),
+            credentials: credentials,
             backupRetention: Duration.days(0),
             deleteAutomatedBackups: true,
             removalPolicy: RemovalPolicy.DESTROY
         });
+
+        this.dbSecret = db.secret!;
 
         new CfnOutput(this, 'BA_CORE_DB_ENDPOINT', {
             value: db.dbInstanceEndpointAddress,
